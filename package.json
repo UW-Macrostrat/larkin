@@ -13,6 +13,8 @@
   "author": "John J Czaplewski",
   "license": "CC-BY-4.0",
   "dependencies": {
+    "csv-express": "^1.2.2",
+    "dbgeo": "^1.1.0",
     "express": "^4.16.3"
   }
 }

@@ -1,4 +1,6 @@
 const Router = require('express').Router
+const csv = require('csv-express')
+const dbgeo = require('dbgeo').parse
 
 const typeMapping = {
   'text': 'string',
@@ -41,6 +43,9 @@ function validateQueryParameters(values, type, param) {
 
 module.exports = class Larkin {
   constructor(params) {
+    this.VERSION = 1
+    this.LICENSE = 'CC-BY 4.0'
+
     // The Express router that is pluggable to a server instance
     this.router = Router()
 
@@ -55,16 +60,31 @@ module.exports = class Larkin {
     // Make sure route exists (hijacks Express's attempt route resolution)
     let requestedRoute = req._parsedUrl.pathname
     if (!this.routes[requestedRoute]) {
-      return this.error(req, res, next, 'Route not found', 404)
+      return this._error(req, res, next, 'Route not found', 404)
+    }
+
+    // Get query parameters
+    let queryParams = Object.keys(req.query)
+
+    // If no parameters or query is provided return the route definition
+    if (!queryParams.length) {
+      return res.json({
+        'v': this.VERSION,
+        'license': this.LICENSE,
+        'route': this.routes[requestedRoute].path,
+        'description': this.routes[requestedRoute].description,
+        'parameters': this.routes[requestedRoute].parameters,
+        'fields': this.routes[requestedRoute].fields,
+        'examples': this.routes[requestedRoute].examples
+      })
     }
 
     // Validate query parameters
-    let queryParams = Object.keys(req.query)
     if (queryParams.length) {
       for (let i = 0; i < queryParams.length; i++) {
         // Does this parameter exist on the requested route?
         if (!this.routes[requestedRoute].parameters[queryParams[i]]) {
-          return this.error(req, res, next, `The parameter '${queryParams[i]}' is not recognized for this route`, 400)
+          return this._error(req, res, next, `The parameter '${queryParams[i]}' is not recognized for this route`, 400)
         }
 
         // Does the value for this parameter conform to the type definition?
@@ -72,13 +92,13 @@ module.exports = class Larkin {
 
         let validationError = validateQueryParameters(req.query[queryParams[i]], type, queryParams[i])
         if (validationError) {
-          return this.error(req, res, next, validationError, 400)
+          return this._error(req, res, next, validationError, 400)
         }
 
         // If the parameter being used is limited to certain values, validate
         if (this.routes[requestedRoute].parameters[queryParams[i]].values) {
           if (this.routes[requestedRoute].parameters[queryParams[i]].values.indexOf(parseDatatype(req.query[queryParams[i]])) === -1) {
-            return this.error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The value '${req.query[queryParams[i]]}' is invalid and not recognized.`)
+            return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The value '${req.query[queryParams[i]]}' is invalid and not recognized.`)
           }
         }
       }
@@ -91,17 +111,58 @@ module.exports = class Larkin {
   registerRoute(route) {
     // Wire the route up to Express
     this.router.route(route.path)
-      .get(route.handler)
+      .get((req, res, next) => {
+        // Add custom response methods that routes will use
+        res.reply = this._send
+        res.error = this._error
+        return route.handler(req, res, next)
+      })
 
     // Keep track of it internally for validation
     this.routes[route.path] = route
   }
 
-  send(req, res, next, data, params) {
+  _send(req, res, next, data, params) {
+    let format = req.query.format || 'json'
+    switch (format) {
+      case 'csv':
+        return res.csv(data, true)
+        break
 
+      case 'geojson':
+        dbgeo(data, {
+          'format': 'geojson',
+          'precision': 6
+        }, (error, geojson) => {
+          if (error) {
+            return this._error(req, res, next, 'An internal error occurred', 500)
+          }
+          res.json(geojson)
+        })
+        break
+
+      case 'topojson':
+        dbgeo(data, {
+          'format': 'topojson',
+          'precision': 6
+        }, (error, topojson) => {
+          if (error) {
+            return this._error(req, res, next, 'An internal error occurred', 500)
+          }
+          res.json(topojson)
+        })
+        break
+        
+      default:
+        res.json({
+          'v': this.VERSION,
+          'license': this.LICENSE,
+          'data': data
+        })
+    }
   }
 
-  error(req, res, next, message, code) {
+  _error(req, res, next, message, code) {
     message = message || 'An error occurred'
 
     res.status = code || 500
@@ -110,5 +171,3 @@ module.exports = class Larkin {
     })
   }
 }
-
-//module.exports = {
