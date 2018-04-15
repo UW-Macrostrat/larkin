@@ -1,0 +1,40 @@
+module.exports = {
+  path: '/test',
+  description: 'A test route',
+  parameters: {
+    'foo': {
+      'type': 'text[]'
+    },
+    'bar': {
+      'type': 'integer[]'
+    },
+    'booker': {
+      'type': 'text'
+    },
+    'toby': {
+      'type': 'integer'
+    },
+    'madison': {
+      'type': 'text[]',
+      'values': [ 'a', 'b', 'c' ]
+    },
+    'format': {
+      'type': 'text',
+      'values': [ 'json', 'csv' ]
+    }
+  },
+  fields: {
+    'message': {
+      'type': 'text',
+      'description': 'Returns success'
+    }
+  },
+  examples: [
+    '/api/test'
+  ],
+  handler: (req, res, next) => {
+    res.reply(req, res, next, [{
+      'message': 'success'
+    }])
+  }
+}

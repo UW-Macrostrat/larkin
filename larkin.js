@@ -42,9 +42,9 @@ function validateQueryParameters(values, type, param) {
 }
 
 module.exports = class Larkin {
-  constructor(params) {
-    this.VERSION = 1
-    this.LICENSE = 'CC-BY 4.0'
+  constructor(config) {
+    this.version = (config && config.version) ? config.version : 1
+    this.license = (config && config.license) ? config.license : 'Unknown'
 
     // The Express router that is pluggable to a server instance
     this.router = Router()
@@ -69,8 +69,8 @@ module.exports = class Larkin {
     // If no parameters or query is provided return the route definition
     if (!queryParams.length) {
       return res.json({
-        'v': this.VERSION,
-        'license': this.LICENSE,
+        'v': this.version,
+        'license': this.license,
         'route': this.routes[requestedRoute].path,
         'description': this.routes[requestedRoute].description,
         'parameters': this.routes[requestedRoute].parameters,
@@ -98,13 +98,14 @@ module.exports = class Larkin {
         // If the parameter being used is limited to certain values, validate
         if (this.routes[requestedRoute].parameters[queryParams[i]].values) {
           if (this.routes[requestedRoute].parameters[queryParams[i]].values.indexOf(parseDatatype(req.query[queryParams[i]])) === -1) {
-            return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The value '${req.query[queryParams[i]]}' is invalid and not recognized.`)
+            return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The value '${req.query[queryParams[i]]}' is invalid and not recognized.`, 400)
           }
         }
       }
 
     }
-    next()
+    //next()
+    this.routes[requestedRoute].handler(req, res, next)
   }
 
   // Given a larkin route definition file register the route on the API
@@ -152,11 +153,11 @@ module.exports = class Larkin {
           res.json(topojson)
         })
         break
-        
+
       default:
         res.json({
-          'v': this.VERSION,
-          'license': this.LICENSE,
+          'v': this.version,
+          'license': this.license,
           'data': data
         })
     }
