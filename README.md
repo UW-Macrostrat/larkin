@@ -30,7 +30,10 @@ app.listen(5555, function() {
 Initializes a new Larkin instance.
 
 ##### config
-Optional configuration object that can contain a `version` for the API and a `license`
+Contains the following optional parameters:
++ `version` - the API version. Default is `1`
++ `license` - The license applied to responses from the API. Default is `Unknown`
++ `description` - a description of the API that is returned when the root of the API is requested 
 
 ### .registerRoute(routeHandler)
 Registers an API route with Larkin. The `routeHandler` is a normal ExpressJS routing function that has a `request`, `response`, and `next` methods. However, when a route is registered with Larkin two additional methods are added to the `response` object - `reply` and `error`.  

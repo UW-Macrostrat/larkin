@@ -45,7 +45,7 @@ module.exports = class Larkin {
   constructor(config) {
     this.version = (config && config.version) ? config.version : 1
     this.license = (config && config.license) ? config.license : 'Unknown'
-
+    this.description = (config && config.description) ? config.description : 'This is the API root'
     // The Express router that is pluggable to a server instance
     this.router = Router()
 
@@ -59,6 +59,21 @@ module.exports = class Larkin {
   validateRequest(req, res, next) {
     // Make sure route exists (hijacks Express's attempt route resolution)
     let requestedRoute = req._parsedUrl.pathname
+
+    // If the root of the API is requested return a list of available routes
+    if (requestedRoute === '/') {
+      let routes = {}
+      Object.keys(this.routes).forEach(route => {
+        routes[this.routes[route].path] = this.routes[route].description
+      })
+
+      return res.json({
+        'v': this.version,
+        'license': this.license,
+        'description': this.description,
+        'routes': routes
+      })
+    }
     if (!this.routes[requestedRoute]) {
       return this._error(req, res, next, 'Route not found', 404)
     }
