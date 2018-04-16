@@ -6,6 +6,7 @@ Expedited API authoring with Express
 + Request query validation
 + Simplified response handling in a variety of formats, including JSON, CSV, and GeoJSON
 + Route documentation generation
++ Easy versioning
 
 
 ## Install  
@@ -66,14 +67,14 @@ Larkin provides a convenient way to share code between all routes by using plugi
 + `pluginName` - a string that defines the key for referencing a plugin
 + `plugin` - an object that contains methods
 
-````
+````javascript
 larkin.registerPlugin('postgres', {
   query: (sql, params, callback) { ... }
 })
 
 ````
 
-### .validateRequest(req, res, next)
+### `.validateRequest(req, res, next)`
 An internal middleware method that is called on every request. Validates the following:
 + The existence of the requested route
 + Returning route definitions if the bare route is requested
