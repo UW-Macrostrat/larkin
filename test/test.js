@@ -1,5 +1,5 @@
 const test = require('tape')
-const Larkin = require('../larkin')
+const Larkin = require('../src/larkin')
 const routeMock = require('./route.mock')
 
 let larkinMock = new Larkin({

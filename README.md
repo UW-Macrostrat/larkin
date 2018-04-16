@@ -1,5 +1,5 @@
 # Larkin  
-Expedited API authoring. Provides parameter validation, response handling, and route documentation generation.
+Expedited API authoring with Express
 
 ## Install  
 
@@ -24,6 +24,14 @@ app.listen(5555, function() {
 })
 ````
 
+## Features
++ Run-time route validation
++ Request query validation
++ Simplified response handling in a variety of formats, including JSON, CSV, and GeoJSON
++ Route documentation generation
++
+
+
 ## API
 
 ### `Larkin(config)`  
@@ -33,7 +41,7 @@ Initializes a new Larkin instance.
 Contains the following optional parameters:
 + `version` - the API version. Default is `1`
 + `license` - The license applied to responses from the API. Default is `Unknown`
-+ `description` - a description of the API that is returned when the root of the API is requested 
++ `description` - a description of the API that is returned when the root of the API is requested
 
 ### .registerRoute(routeHandler)
 Registers an API route with Larkin. The `routeHandler` is a normal ExpressJS routing function that has a `request`, `response`, and `next` methods. However, when a route is registered with Larkin two additional methods are added to the `response` object - `reply` and `error`.  
