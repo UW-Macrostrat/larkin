@@ -91,7 +91,7 @@ module.exports = class Larkin {
       }
     }
     //next()
-    this.routes[requestedRoute].handler(req, res, next)
+    this.routes[requestedRoute].handler(req, res, next, this.plugins)
   }
 
   // Given a larkin route definition file register the route on the API
