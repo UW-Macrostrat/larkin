@@ -64,8 +64,8 @@ function validateRoute(route) {
   }
 
   // Make sure a handler exists
-  if (route.handler.length != 3) {
-    throw new Error(`The handler of ${route.path} must accept three parameters - req, res, and next`)
+  if (route.handler.length < 3) {
+    throw new Error(`The handler of ${route.path} must accept three parameters - req, res, next, and optionally plugins`)
   }
 
   // Check for the existence of examples

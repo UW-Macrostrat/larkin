@@ -24,6 +24,19 @@ test('register a route', t => {
   t.end()
 })
 
+test('register a plugin', t => {
+  let mockPlugin = {
+    'someMethod': () => {}
+  }
+  larkinMock.registerPlugin('testPlugin', mockPlugin)
+
+  t.deepEqual(larkinMock.plugins, {
+    'testPlugin': mockPlugin
+  })
+
+  t.end()
+})
+
 
 test('throw an error if an unknown route is requested', t => {
   let req = {

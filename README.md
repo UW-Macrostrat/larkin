@@ -1,6 +1,13 @@
 # Larkin  
 Expedited API authoring with Express
 
+## Features
++ Run-time route validation
++ Request query validation
++ Simplified response handling in a variety of formats, including JSON, CSV, and GeoJSON
++ Route documentation generation
+
+
 ## Install  
 
 **NOT YET PUBLISHED!**
@@ -9,6 +16,8 @@ npm install --save @macrostrat/larkin
 ````
 
 ## Usage  
+For a complete example please see the code in `/example`
+
 ````javascript
 const express = require('express')
 const app = express()
@@ -24,14 +33,6 @@ app.listen(5555, function() {
 })
 ````
 
-## Features
-+ Run-time route validation
-+ Request query validation
-+ Simplified response handling in a variety of formats, including JSON, CSV, and GeoJSON
-+ Route documentation generation
-+
-
-
 ## API
 
 ### `Larkin(config)`  
@@ -43,7 +44,7 @@ Contains the following optional parameters:
 + `license` - The license applied to responses from the API. Default is `Unknown`
 + `description` - a description of the API that is returned when the root of the API is requested
 
-### .registerRoute(routeHandler)
+### `.registerRoute(routeHandler)`
 Registers an API route with Larkin. The `routeHandler` is a normal ExpressJS routing function that has a `request`, `response`, and `next` methods. However, when a route is registered with Larkin two additional methods are added to the `response` object - `reply` and `error`.  
 `reply` is a function for returning data to the client that accepts 5 parameters:
 + `request`
@@ -58,6 +59,19 @@ Registers an API route with Larkin. The `routeHandler` is a normal ExpressJS rou
 + `next`
 + `error` - a message to return to the client
 + `error code` - defaults to `500`. The appropriate error code for the HTTP response.
+
+### `.registerPlugin(pluginName, plugin) ` 
+Larkin provides a convenient way to share code between all routes by using plugins. If your API is database-driven, a plugin in a great way to define a database connection pool once and use it in all your routes. The plugin can have an API of your choosing.
+
++ `pluginName` - a string that defines the key for referencing a plugin
++ `plugin` - an object that contains methods
+
+````
+larkin.registerPlugin('postgres', {
+  query: (sql, params, callback) { ... }
+})
+
+````
 
 ### .validateRequest(req, res, next)
 An internal middleware method that is called on every request. Validates the following:

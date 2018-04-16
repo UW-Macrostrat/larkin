@@ -32,7 +32,7 @@ module.exports = {
   examples: [
     '/api/test'
   ],
-  handler: (req, res, next) => {
+  handler: (req, res, next, plugins) => {
     res.reply(req, res, next, [{
       'message': 'success'
     }])

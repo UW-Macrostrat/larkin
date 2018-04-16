@@ -3,10 +3,8 @@ const csv = require('csv-express')
 const dbgeo = require('dbgeo').parse
 
 const typeMapping = require('./type-mapping')
-
 const util = require('./util')
 const validate = require('./validate')
-
 
 module.exports = class Larkin {
   constructor(config) {
@@ -21,6 +19,9 @@ module.exports = class Larkin {
 
     // Internal record of registered routes and their associated configs
     this.routes = {}
+
+    // Plugins can be arbitrarily defined by the user
+    this.plugins = {}
   }
 
   validateRequest(req, res, next) {
@@ -41,6 +42,7 @@ module.exports = class Larkin {
       })
     }
 
+    // If the requested route is unknown to larkin, return a 404
     if (!this.routes[requestedRoute]) {
       return this._error(req, res, next, 'Route not found', 404)
     }
@@ -83,8 +85,10 @@ module.exports = class Larkin {
             return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The value '${req.query[queryParams[i]]}' is invalid and not recognized.`, 400)
           }
         }
-      }
 
+        // Parse the values
+        req.query[queryParams[i]] = util.parseDatatype(req.query[queryParams[i]])
+      }
     }
     //next()
     this.routes[requestedRoute].handler(req, res, next)
@@ -92,21 +96,31 @@ module.exports = class Larkin {
 
   // Given a larkin route definition file register the route on the API
   registerRoute(route) {
-    // Before wiring up validate
+    // Validate before wiring up
     validate.route(route)
+
     // Wire the route up to Express
     this.router.route(route.path)
       .get((req, res, next) => {
         // Add custom response methods that routes will use
         res.reply = this._send
         res.error = this._error
-        return route.handler(req, res, next)
+        return route.handler(req, res, next, this.plugins)
       })
 
     // Keep track of it internally for validation
     this.routes[route.path] = route
   }
 
+  // Add a custom plugin that is accessible to all routes
+  registerPlugin(pluginName, plugin) {
+    if (!pluginName) {
+      throw new Error('Plugin must have a name')
+    }
+    this.plugins[pluginName] = plugin
+  }
+
+  // Return data to the client
   _send(req, res, next, data, params) {
     let format = req.query.format || 'json'
     switch (format) {
