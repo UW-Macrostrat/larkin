@@ -60,7 +60,7 @@ Registers an API route with Larkin. The `routeHandler` is a normal ExpressJS rou
 + `error` - a message to return to the client
 + `error code` - defaults to `500`. The appropriate error code for the HTTP response.
 
-### `.registerPlugin(pluginName, plugin) ` 
+### `.registerPlugin(pluginName, plugin) `
 Larkin provides a convenient way to share code between all routes by using plugins. If your API is database-driven, a plugin in a great way to define a database connection pool once and use it in all your routes. The plugin can have an API of your choosing.
 
 + `pluginName` - a string that defines the key for referencing a plugin
@@ -82,6 +82,13 @@ An internal middleware method that is called on every request. Validates the fol
 + If a given query parameter only accepts certain values as defined in the route definition, the value passed to that parameter will be validated against the accepted values.
 
 
+
+## Development  
+Larkin uses Tape for tests, which can be found in `/test`. To run unit tests:
+
+````
+npm test
+````
 
 ## Funding  
 Development supported by NSF CAREER EAR-1150082 and NSF ICER-1440312.

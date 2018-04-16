@@ -4,8 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "node_modules/.bin/tape test/*.js",
-    "start": "node server.js"
+    "test": "node_modules/.bin/tape test/*.js"
   },
   "keywords": [
     "api"
