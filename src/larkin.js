@@ -87,11 +87,10 @@ module.exports = class Larkin {
         }
 
         // Parse the values
-        req.query[queryParams[i]] = util.parseDatatype(req.query[queryParams[i]])
+        req.query[queryParams[i]] = util.parseParams(req.query[queryParams[i]], this.routes[requestedRoute].parameters[queryParams[i]].type)
       }
     }
-    //next()
-    this.routes[requestedRoute].handler(req, res, next, this.plugins)
+    next()
   }
 
   // Given a larkin route definition file register the route on the API

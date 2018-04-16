@@ -143,13 +143,10 @@ test('allow valid values passed to a known parameter', t => {
     status: 0,
     reply: larkinMock._send.bind(larkinMock),
     json: (obj) => {
-      t.deepEqual(obj, {
-        "v": larkinMock.version,
-        "license": larkinMock.license,
-        "data": [{
+      t.deepEqual(obj.data, [{
           "message": "success"
         }]
-      })
+      )
       t.end()
     }
   }
@@ -197,13 +194,10 @@ test('allow a valid value passed to a known parameter with enumerated values', t
     status: 0,
     reply: larkinMock._send.bind(larkinMock),
     json: (obj) => {
-      t.deepEqual(obj, {
-        "v": larkinMock.version,
-        "license": larkinMock.license,
-        "data": [{
+      t.deepEqual(obj.data,[{
           "message": "success"
         }]
-      })
+      )
       t.end()
     }
   }
