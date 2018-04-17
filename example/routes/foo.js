@@ -3,10 +3,12 @@ module.exports = {
   description: 'An example route',
   parameters: {
     'thing': {
-      'type': 'text[]'
+      'type': 'text[]',
+      'description': 'a thing'
     },
     'format': {
       'type': 'text',
+      'description': 'desired output format',
       'values': [ 'json', 'csv' ]
     }
   },

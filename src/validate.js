@@ -18,6 +18,15 @@ function validateRoute(route) {
     throw new Error(`The route "${route.path}" is missing a description`)
   }
 
+  // Make sure requiredParameters are present
+  if (!route.requiredParameters) {
+    throw new Error(`The route "${route.path}" is missing requiredParameters`)
+  }
+  // Make sure requiresOneOf is present
+  if (!route.requiresOneOf) {
+    throw new Error(`The route "${route.path}" is missing requiresOneOf`)
+  }
+
   // Make sure parameters are present
   if (!route.parameters) {
     throw new Error(`The route "${route.path}" must have parameters`)
@@ -33,6 +42,9 @@ function validateRoute(route) {
     }
     if (!typeMapping[route.parameters[param].type]) {
       throw new Error(`The type "${route.parameters[param].type}" is invalid`)
+    }
+    if (!route.parameters[param].description || route.parameters[param].description.length === 0) {
+      throw new Error(`The parameter "${param}" is missing a description`)
     }
   })
 
