@@ -10,6 +10,8 @@ module.exports = {
       'values': [ 'json', 'csv' ]
     }
   },
+  requiredParameters: [ ],
+  requiresOneOf: [ 'thing' ],
   fields: {
     'message': {
       'type': 'text',
@@ -20,6 +22,6 @@ module.exports = {
     '/api/foo'
   ],
   handler: (req, res, next) => {
-    res.reply(req, res, next, [{"message": `Can you hear me? You provided the following values to the parameter 'thing' - ${req.query.thing.split(',')}`}])
+    res.reply(req, res, next, [{"message": `Can you hear me? You provided the following values to the parameter 'thing' - ${req.query.thing.join(', ')}`}])
   }
 }

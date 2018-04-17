@@ -71,6 +71,8 @@ test('return the route definition if no parameters are passed', t => {
         'license': larkinMock.license,
         'route': routeMock.path,
         'description': routeMock.description,
+        'requiredParameters': routeMock.requiredParameters,
+        'requiresOneOf': routeMock.requiresOneOf,
         'parameters': routeMock.parameters,
         'fields': routeMock.fields,
         'examples': routeMock.examples
@@ -169,7 +171,7 @@ test('throw an error if an unknown value is passed to a known parameter with enu
     status: 0,
     json: (obj) => {
       t.deepEqual(obj, {
-        'error': `The parameter 'format' accepts the following values -  ${routeMock.parameters.format.values.join(', ')}. The value 'invalid' is invalid and not recognized.`
+        'error': `The parameter 'format' accepts the following values -  ${routeMock.parameters.format.values.join(', ')}. The values 'invalid' are invalid and not recognized.`
       })
       t.equal(res.status, 400)
       t.end()
@@ -187,7 +189,7 @@ test('allow a valid value passed to a known parameter with enumerated values', t
       pathname: routeMock.path
     },
     query: {
-      'format': 'json'
+      'bar': '1,2,3'
     }
   }
   let res = {
@@ -198,6 +200,33 @@ test('allow a valid value passed to a known parameter with enumerated values', t
           "message": "success"
         }]
       )
+      t.end()
+    }
+  }
+  larkinMock.router.handle(req, res, function(error) {
+    console.log('ERROR', error)
+  })
+})
+
+test('expect an error if the request does not contain a required parameter', t => {
+  let req = {
+    'url': routeMock.path,
+    'method': 'GET',
+    _parsedUrl: {
+      pathname: routeMock.path
+    },
+    query: {
+      'madison': 'a,b'
+    }
+  }
+  let res = {
+    status: 0,
+    reply: larkinMock._send.bind(larkinMock),
+    json: (obj) => {
+      t.deepEqual(obj, {
+        "error": `The route ${routeMock.path} requires at least one of the following parameters: ${routeMock.requiresOneOf.join(', ')}`
+      })
+      t.equal(res.status, 400)
       t.end()
     }
   }

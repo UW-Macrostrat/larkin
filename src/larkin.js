@@ -57,6 +57,8 @@ module.exports = class Larkin {
         'license': this.license,
         'route': this.routes[requestedRoute].path,
         'description': this.routes[requestedRoute].description,
+        'requiredParameters': this.routes[requestedRoute].requiredParameters,
+        'requiresOneOf': this.routes[requestedRoute].requiresOneOf,
         'parameters': this.routes[requestedRoute].parameters,
         'fields': this.routes[requestedRoute].fields,
         'examples': this.routes[requestedRoute].examples
@@ -64,32 +66,61 @@ module.exports = class Larkin {
     }
 
     // Validate query parameters
-    if (queryParams.length) {
-      for (let i = 0; i < queryParams.length; i++) {
-        // Does this parameter exist on the requested route?
-        if (!this.routes[requestedRoute].parameters[queryParams[i]]) {
-          return this._error(req, res, next, `The parameter '${queryParams[i]}' is not recognized for this route`, 400)
-        }
-
-        // Does the value for this parameter conform to the type definition?
-        let type = this.routes[requestedRoute].parameters[queryParams[i]].type
-
-        let validationError = validate.queryParameters(req.query[queryParams[i]], type, queryParams[i])
-        if (validationError) {
-          return this._error(req, res, next, validationError, 400)
-        }
-
-        // If the parameter being used is limited to certain values, validate
-        if (this.routes[requestedRoute].parameters[queryParams[i]].values) {
-          if (this.routes[requestedRoute].parameters[queryParams[i]].values.indexOf(util.parseDatatype(req.query[queryParams[i]])) === -1) {
-            return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The value '${req.query[queryParams[i]]}' is invalid and not recognized.`, 400)
-          }
-        }
-
-        // Parse the values
-        req.query[queryParams[i]] = util.parseParams(req.query[queryParams[i]], this.routes[requestedRoute].parameters[queryParams[i]].type)
+    for (let i = 0; i < queryParams.length; i++) {
+      // Does this parameter exist on the requested route?
+      if (!this.routes[requestedRoute].parameters[queryParams[i]]) {
+        return this._error(req, res, next, `The parameter '${queryParams[i]}' is not recognized for this route`, 400)
       }
+
+      // Does the value for this parameter conform to the type definition?
+      let type = this.routes[requestedRoute].parameters[queryParams[i]].type
+
+      let validationError = validate.queryParameters(req.query[queryParams[i]], type, queryParams[i])
+      if (validationError) {
+        return this._error(req, res, next, validationError, 400)
+      }
+
+      // If the parameter being used is limited to certain values, validate
+      if (this.routes[requestedRoute].parameters[queryParams[i]].values) {
+        let invalidValues = []
+        let requestedValues = [].concat(util.parseParams(req.query[queryParams[i]], this.routes[requestedRoute].parameters[queryParams[i]].type))
+
+        requestedValues.forEach(v => {
+          if (this.routes[requestedRoute].parameters[queryParams[i]].values.indexOf(v) === -1) {
+            invalidValues.push(v)
+          }
+        })
+        if (invalidValues.length) {
+          return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The values '${invalidValues.join(', ')}' are invalid and not recognized.`, 400)
+        }
+      }
+
+      // Parse the values
+      req.query[queryParams[i]] = util.parseParams(req.query[queryParams[i]], this.routes[requestedRoute].parameters[queryParams[i]].type)
     }
+
+    // If the route has required parameters make sure they are present
+    if (
+      this.routes[requestedRoute].requiredParameters &&
+      this.routes[requestedRoute].requiredParameters.length &&
+      this.routes[requestedRoute].requiredParameters.filter(n => {
+          return queryParams.indexOf(n) !== -1;
+      }).length === 0
+    ) {
+      return this._error(req, res, next, `The route ${requestedRoute} requires the following parameters: ${this.routes[requestedRoute].requiredParameters.join(', ')}`, 400)
+    }
+
+    // If the route has requiresOneOf parameters make sure they are present
+    if (
+      this.routes[requestedRoute].requiresOneOf &&
+      this.routes[requestedRoute].requiresOneOf.length &&
+      this.routes[requestedRoute].requiresOneOf.filter(n => {
+          return queryParams.indexOf(n) !== -1;
+      }).length === 0
+    ) {
+      return this._error(req, res, next, `The route ${requestedRoute} requires at least one of the following parameters: ${this.routes[requestedRoute].requiresOneOf.join(', ')}`, 400)
+    }
+
     next()
   }
 

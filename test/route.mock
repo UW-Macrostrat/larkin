@@ -23,6 +23,8 @@ module.exports = {
       'values': [ 'json', 'csv' ]
     }
   },
+  requiredParameters: [],
+  requiresOneOf: [ 'foo', 'bar', 'booker', 'toby' ],
   fields: {
     'message': {
       'type': 'text',
