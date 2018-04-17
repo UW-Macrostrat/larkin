@@ -3,23 +3,29 @@ module.exports = {
   description: 'A test route',
   parameters: {
     'foo': {
-      'type': 'text[]'
+      'type': 'text[]',
+      'description': 'the foo parameter'
     },
     'bar': {
-      'type': 'integer[]'
+      'type': 'integer[]',
+      'description': 'the bar parameter'
     },
     'booker': {
-      'type': 'text'
+      'type': 'text',
+      'description': 'the cutest'
     },
     'toby': {
-      'type': 'integer'
+      'type': 'integer',
+      'description': 'a pup'
     },
     'madison': {
       'type': 'text[]',
+      'description': 'on an isthmus',
       'values': [ 'a', 'b', 'c' ]
     },
     'format': {
       'type': 'text',
+      'description': 'desired output format',
       'values': [ 'json', 'csv' ]
     }
   },
