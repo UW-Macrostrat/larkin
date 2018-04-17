@@ -102,8 +102,8 @@ module.exports = class Larkin {
     this.router.route(route.path)
       .get((req, res, next) => {
         // Add custom response methods that routes will use
-        res.reply = this._send
-        res.error = this._error
+        res.reply = this._send.bind(this)
+        res.error = this._error.bind(this)
         return route.handler(req, res, next, this.plugins)
       })
 
