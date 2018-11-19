@@ -22,15 +22,17 @@ module.exports = class Larkin {
 
     // Plugins can be arbitrarily defined by the user
     this.plugins = {}
+
+    this.router.get('/', this.validateRequest.bind(this))
   }
 
   validateRequest(req, res, next) {
     // Make sure route exists (hijacks Express's attempt route resolution)
   //  let requestedRoute = req._parsedUrl.pathname
     let requestedRoute = req.route.path
-
+    
     // If the root of the API is requested return a list of available routes
-    if (requestedRoute === '/') {
+    if (!requestedRoute || requestedRoute === '/') {
       let routes = {}
       Object.keys(this.routes).forEach(route => {
         routes[this.routes[route].path] = this.routes[route].description
