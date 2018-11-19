@@ -15,7 +15,7 @@ module.exports = class Larkin {
     this.router = Router()
 
     // Before the handler of any route is called validate the request
-    this.router.use(this.validateRequest.bind(this))
+  //  this.router.use(this.validateRequest.bind(this))
 
     // Internal record of registered routes and their associated configs
     this.routes = {}
@@ -26,7 +26,8 @@ module.exports = class Larkin {
 
   validateRequest(req, res, next) {
     // Make sure route exists (hijacks Express's attempt route resolution)
-    let requestedRoute = req._parsedUrl.pathname
+  //  let requestedRoute = req._parsedUrl.pathname
+    let requestedRoute = req.route.path
 
     // If the root of the API is requested return a list of available routes
     if (requestedRoute === '/') {
@@ -48,7 +49,11 @@ module.exports = class Larkin {
     }
 
     // Get query parameters
-    let queryParams = Object.keys(req.query)
+    let queryParams = Object.keys(req.query).map(d => { return [d, req.query[d]] })
+    let positionalParams = (req.params) ? Object.keys(req.params).filter(d => { if (req.params[d]) return d }).map(d => { return [d, req.params[d]] }) : []
+    // Combine them
+    queryParams = [...queryParams, ...positionalParams]
+
 
     // If no parameters or query is provided return the route definition
     if (!queryParams.length) {
@@ -56,6 +61,7 @@ module.exports = class Larkin {
         'v': this.version,
         'license': this.license,
         'route': this.routes[requestedRoute].path,
+        'methods': this.routes[requestedRoute].methods,
         'description': this.routes[requestedRoute].description,
         'requiredParameters': this.routes[requestedRoute].requiredParameters,
         'requiresOneOf': this.routes[requestedRoute].requiresOneOf,
@@ -68,35 +74,35 @@ module.exports = class Larkin {
     // Validate query parameters
     for (let i = 0; i < queryParams.length; i++) {
       // Does this parameter exist on the requested route?
-      if (!this.routes[requestedRoute].parameters[queryParams[i]]) {
-        return this._error(req, res, next, `The parameter '${queryParams[i]}' is not recognized for this route`, 400)
+      if (!this.routes[requestedRoute].parameters[queryParams[i][0]]) {
+        return this._error(req, res, next, `The parameter '${queryParams[i][0]}' is not recognized for this route`, 400)
       }
 
       // Does the value for this parameter conform to the type definition?
-      let type = this.routes[requestedRoute].parameters[queryParams[i]].type
+      let type = this.routes[requestedRoute].parameters[queryParams[i][0]].type
 
-      let validationError = validate.queryParameters(req.query[queryParams[i]], type, queryParams[i])
+      let validationError = validate.queryParameters(queryParams[i][1], type, queryParams[i][0])
       if (validationError) {
         return this._error(req, res, next, validationError, 400)
       }
 
       // If the parameter being used is limited to certain values, validate
-      if (this.routes[requestedRoute].parameters[queryParams[i]].values) {
+      if (this.routes[requestedRoute].parameters[queryParams[i][0]].values) {
         let invalidValues = []
-        let requestedValues = [].concat(util.parseParams(req.query[queryParams[i]], this.routes[requestedRoute].parameters[queryParams[i]].type))
+        let requestedValues = [].concat(util.parseParams(queryParams[i][1], this.routes[requestedRoute].parameters[queryParams[i][0]].type))
 
         requestedValues.forEach(v => {
-          if (this.routes[requestedRoute].parameters[queryParams[i]].values.indexOf(v) === -1) {
+          if (this.routes[requestedRoute].parameters[queryParams[i][0]].values.indexOf(v) === -1) {
             invalidValues.push(v)
           }
         })
         if (invalidValues.length) {
-          return this._error(req, res, next, `The parameter '${queryParams[i]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i]].values.join(', ')}. The values '${invalidValues.join(', ')}' are invalid and not recognized.`, 400)
+          return this._error(req, res, next, `The parameter '${queryParams[i][0]}' accepts the following values -  ${this.routes[requestedRoute].parameters[queryParams[i][0]].values.join(', ')}. The values '${invalidValues.join(', ')}' are invalid and not recognized.`, 400)
         }
       }
 
       // Parse the values
-      req.query[queryParams[i]] = util.parseParams(req.query[queryParams[i]], this.routes[requestedRoute].parameters[queryParams[i]].type)
+      req.query[queryParams[i][0]] = util.parseParams(queryParams[i][1], this.routes[requestedRoute].parameters[queryParams[i][0]].type)
     }
 
     // If the route has required parameters make sure they are present
@@ -115,7 +121,7 @@ module.exports = class Larkin {
       this.routes[requestedRoute].requiresOneOf &&
       this.routes[requestedRoute].requiresOneOf.length &&
       this.routes[requestedRoute].requiresOneOf.filter(n => {
-          return queryParams.indexOf(n) !== -1;
+          return queryParams.map(d => d[0]).indexOf(n) !== -1;
       }).length === 0
     ) {
       return this._error(req, res, next, `The route ${requestedRoute} requires at least one of the following parameters: ${this.routes[requestedRoute].requiresOneOf.join(', ')}`, 400)
@@ -129,14 +135,47 @@ module.exports = class Larkin {
     // Validate before wiring up
     validate.route(route)
 
-    // Wire the route up to Express
     this.router.route(route.path)
-      .get((req, res, next) => {
-        // Add custom response methods that routes will use
-        res.reply = this._send.bind(this)
-        res.error = this._error.bind(this)
-        return route.handler(req, res, next, this.plugins)
-      })
+      .all(this.validateRequest.bind(this))
+
+    // Wire the route up to Express
+    route.methods.forEach(method => {
+      if (method === 'GET') {
+        this.router.route(route.path)
+          .get((req, res, next) => {
+            // Add custom response methods that routes will use
+            res.reply = this._send.bind(this)
+            res.error = this._error.bind(this)
+            return route.handler(req, res, next, this.plugins)
+          })
+      } else if (method === 'POST') {
+        this.router.route(route.path)
+          .post((req, res, next) => {
+            // Add custom response methods that routes will use
+            res.reply = this._send.bind(this)
+            res.error = this._error.bind(this)
+            return route.handler(req, res, next, this.plugins)
+          })
+      } else if (method === 'PUT') {
+        this.router.route(route.path)
+          .put((req, res, next) => {
+            // Add custom response methods that routes will use
+            res.reply = this._send.bind(this)
+            res.error = this._error.bind(this)
+            return route.handler(req, res, next, this.plugins)
+          })
+      } else if (method === 'DELETE') {
+        this.router.route(route.path)
+          .delete((req, res, next) => {
+            // Add custom response methods that routes will use
+            res.reply = this._send.bind(this)
+            res.error = this._error.bind(this)
+            return route.handler(req, res, next, this.plugins)
+          })
+      } else {
+        throw new Error(`Method ${method} is not valid HTTP method`)
+      }
+    })
 
     // Keep track of it internally for validation
     this.routes[route.path] = route

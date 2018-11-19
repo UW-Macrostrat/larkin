@@ -1,5 +1,6 @@
 module.exports = {
-  path: '/foo',
+  path: '/foo/:thing?',
+  methods: ['GET'],
   description: 'An example route',
   parameters: {
     'thing': {

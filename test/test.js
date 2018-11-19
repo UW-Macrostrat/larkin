@@ -40,8 +40,8 @@ test('register a plugin', t => {
 
 test('throw an error if an unknown route is requested', t => {
   let req = {
-    _parsedUrl: {
-      pathname: '/invalid'
+    route: {
+      path: '/invalid'
     }
   }
   let res = {
@@ -59,8 +59,8 @@ test('throw an error if an unknown route is requested', t => {
 test('return the route definition if no parameters are passed', t => {
 
   let req = {
-    _parsedUrl: {
-      pathname: routeMock.path
+    route: {
+      path: routeMock.path
     },
     query: {}
   }
@@ -70,6 +70,7 @@ test('return the route definition if no parameters are passed', t => {
         'v': larkinMock.version,
         'license': larkinMock.license,
         'route': routeMock.path,
+        'methods': routeMock.methods,
         'description': routeMock.description,
         'requiredParameters': routeMock.requiredParameters,
         'requiresOneOf': routeMock.requiresOneOf,
@@ -86,8 +87,8 @@ test('return the route definition if no parameters are passed', t => {
 
 test('throw an error if an unknown parameter is passed', t => {
   let req = {
-    _parsedUrl: {
-      pathname: routeMock.path
+    route: {
+      path: routeMock.path
     },
     query: {
       'invalid': 'abc'
@@ -109,8 +110,8 @@ test('throw an error if an unknown parameter is passed', t => {
 
 test('throw an error if an invalid data type is passed to a known parameter', t => {
   let req = {
-    _parsedUrl: {
-      pathname: routeMock.path
+    route: {
+      path: routeMock.path
     },
     query: {
       'booker': '99'
@@ -134,8 +135,8 @@ test('allow valid values passed to a known parameter', t => {
   let req = {
     'url': routeMock.path,
     'method': 'GET',
-    _parsedUrl: {
-      pathname: routeMock.path
+    route: {
+      path: routeMock.path
     },
     query: {
       'booker': 'cute'
@@ -160,8 +161,8 @@ test('allow valid values passed to a known parameter', t => {
 
 test('throw an error if an unknown value is passed to a known parameter with enumerated values', t => {
   let req = {
-    _parsedUrl: {
-      pathname: routeMock.path
+    route: {
+      path: routeMock.path
     },
     query: {
       'format': 'invalid'
@@ -185,8 +186,8 @@ test('allow a valid value passed to a known parameter with enumerated values', t
   let req = {
     'url': routeMock.path,
     'method': 'GET',
-    _parsedUrl: {
-      pathname: routeMock.path
+    route: {
+      path: routeMock.path
     },
     query: {
       'bar': '1,2,3'

@@ -1,6 +1,7 @@
 module.exports = {
   path: '/test',
   description: 'A test route',
+  methods: ['GET'],
   parameters: {
     'foo': {
       'type': 'text[]',
