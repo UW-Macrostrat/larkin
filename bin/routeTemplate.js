@@ -2,6 +2,8 @@ module.exports = {
   // The uri this route is mapped to
   path: '/:name',
 
+  displayPath: '/:name',
+
   // Describe what the route does here
   description: 'Description goes here',
 

@@ -30,12 +30,12 @@ module.exports = class Larkin {
     // Make sure route exists (hijacks Express's attempt route resolution)
   //  let requestedRoute = req._parsedUrl.pathname
     let requestedRoute = req.route.path
-    
+
     // If the root of the API is requested return a list of available routes
     if (!requestedRoute || requestedRoute === '/') {
       let routes = {}
       Object.keys(this.routes).forEach(route => {
-        routes[this.routes[route].path] = this.routes[route].description
+        routes[this.routes[route].displayPath || this.routes[route].path] = this.routes[route].description
       })
       return res.json({
         'v': this.version,
@@ -62,7 +62,7 @@ module.exports = class Larkin {
       return res.json({
         'v': this.version,
         'license': this.license,
-        'route': this.routes[requestedRoute].path,
+        'route': this.routes[requestedRoute].displayPath || this.routes[requestedRoute].path,
         'methods': this.routes[requestedRoute].methods,
         'description': this.routes[requestedRoute].description,
         'requiredParameters': this.routes[requestedRoute].requiredParameters,
