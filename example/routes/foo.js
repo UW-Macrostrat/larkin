@@ -5,7 +5,6 @@ module.exports = {
   description: 'An example route',
   parameters: {
     'thing': {
-      'type': 'text[]',
       'description': 'a thing'
     },
     'format': {
@@ -26,6 +25,6 @@ module.exports = {
     '/api/foo'
   ],
   handler: (req, res, next) => {
-    res.reply(req, res, next, [{"message": `Can you hear me? You provided the following values to the parameter 'thing' - ${req.query.thing.join(', ')}`}])
+    res.reply(req, res, next, [{"message": `Can you hear me? You provided the following values to the parameter 'thing' - ${req.query.thing}`}])
   }
 }

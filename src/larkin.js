@@ -81,7 +81,7 @@ module.exports = class Larkin {
       }
 
       // Does the value for this parameter conform to the type definition?
-      let type = this.routes[requestedRoute].parameters[queryParams[i][0]].type
+      let type = this.routes[requestedRoute].parameters[queryParams[i][0]].type || ''
 
       let validationError = validate.queryParameters(queryParams[i][1], type, queryParams[i][0])
       if (validationError) {
@@ -104,7 +104,7 @@ module.exports = class Larkin {
       }
 
       // Parse the values
-      req.query[queryParams[i][0]] = util.parseParams(queryParams[i][1], this.routes[requestedRoute].parameters[queryParams[i][0]].type)
+      req.query[queryParams[i][0]] = util.parseParams(queryParams[i][1], this.routes[requestedRoute].parameters[queryParams[i][0]].type || '')
     }
 
     // If the route has required parameters make sure they are present

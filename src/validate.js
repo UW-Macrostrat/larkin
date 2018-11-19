@@ -38,7 +38,8 @@ function validateRoute(route) {
   // Validate the parameters
   Object.keys(route.parameters).forEach(param => {
     if (!route.parameters[param].type) {
-      throw new Error(`The parameter "${param}" is missing a type`)
+      console.warn(`The parameter "${param}" is missing a type`)
+      return
     }
     if (!typeMapping[route.parameters[param].type]) {
       throw new Error(`The type "${route.parameters[param].type}" is invalid`)
@@ -102,6 +103,7 @@ function validateQueryParameters(values, type, param) {
 }
 
 function validateDatatype(val, type, param) {
+  if (!type) return
   let parsedValue = parseDatatype(val)
   if (typeof parsedValue != typeMapping[type]) {
     return `The value '${val}' provided to the parameter '${param}' is invalid. The parameter '${param}' expects values to be a ${typeMapping[type]} but '${val}' is a ${typeof parsedValue}`
