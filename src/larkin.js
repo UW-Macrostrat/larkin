@@ -32,7 +32,7 @@ module.exports = class Larkin {
     let requestedRoute = req.route.path
 
     // If the root of the API is requested return a list of available routes
-    if (!requestedRoute || requestedRoute === '/') {
+    if ((!requestedRoute || requestedRoute === '/') && req.method != 'POST') {
       let routes = {}
       Object.keys(this.routes).forEach(route => {
         routes[this.routes[route].displayPath || this.routes[route].path] = this.routes[route].description
@@ -58,7 +58,7 @@ module.exports = class Larkin {
 
 
     // If no parameters or query is provided return the route definition
-    if (!queryParams.length) {
+    if (!queryParams.length && req.method != 'POST') {
       return res.json({
         'v': this.version,
         'license': this.license,
